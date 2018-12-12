@@ -11,22 +11,22 @@ import os
 from PIL import Image
 import random
 
-image_train_path = './cifar-10/train/'						# 训练集路径
-label_train_path = './cifar-10/train_label.txt'		# 存放测试集中图片相关信息的文件路径 
-tfRecord_train = './data/cifar_train.tfrecords'		# 训练集的tfrecord文件路径
+image_train_path = './pic/train/'						# 训练集路径
+#label_train_path = './cifar-10/train_label.txt'		# 存放测试集中图片相关信息的文件路径 
+tfRecord_train = './data/train.tfrecords'		# 训练集的tfrecord文件路径
 
-image_test_path = './cifar-10/test/'							# 测试集路径
-label_test_path = './cifar-10/test_label.txt'  		# 存放训练集中图片相关信息的文件路径
-tfRecord_test = './data/cifar_test.tfrecords'			# 测试集的tfrecord文件路径
+#image_test_path = './cifar-10/test/'							# 测试集路径
+#label_test_path = './cifar-10/test_label.txt'  		# 存放训练集中图片相关信息的文件路径
+#tfRecord_test = './data/cifar_test.tfrecords'			# 测试集的tfrecord文件路径
 
 data_path = './data'
 resize_height = 32
-resize_width = 32
+resize_width = 256
 
-train_folder = './cifar-10/train'
+train_folder = './pic/train'
 test_folder = './cifar-10/test'
-
-def ReadFile(path):
+'''
+def ReadFile(path):                                 #往文件夹里写标签text
     pic_folder = os.listdir(path)                   #s.listdir返回文件夹内的文件列表，[bird, dog, ....]
     num_dict = [0,1,2,3,4,5,6,7,8,9]
     dict_pic_num = dict(zip(pic_folder,num_dict)  ) #把2个列表合成一个字典
@@ -38,10 +38,10 @@ def ReadFile(path):
         for filename in files:                      #filename == batch_2_num_6379.jpg
             train_dataset_label.write(filename + ' ' + folder + ' ' + str(dict_pic_num[folder]) +'\n')
     print 'write successfully!!!'
+'''
+def ID2Vecs(ID_String):
 
-
-
-def write_tfRecord(tfRecordName, image_path, label_path):	# 生成tfrecord文件，对图片进行标注，将图和标签封装进example并做序列化处理，写入tfrecord文件
+def write_tfRecord(tfRecordName, image_path):	# 生成tfrecord文件，对图片进行标注，将图和标签封装进example并做序列化处理，写入tfrecord文件
     writer = tf.python_io.TFRecordWriter(tfRecordName)		#新建一writer
     num_pic = 0
     f = open(label_path, 'r')
@@ -55,7 +55,7 @@ def write_tfRecord(tfRecordName, image_path, label_path):	# 生成tfrecord文件
 
         img = Image.open(img_path)
         img_raw = img.tobytes()                                #img_raw是一串0,1组合，表现成'\xe4\xb8\xad\x96'这种形式 
-        labels = [0] * 10
+        labels = [0] * 180
         labels[int(value[2])] = 1                               #   labels[9] = 1, 此时labels=[0,0,0,0,0,0,0,0,0,1]
         example = tf.train.Example(features=tf.train.Features(feature={                          #tf.train.Example用来存储训练数据,训练数据的特征用键值对的形式表示
                 'img_raw':tf.train.Feature(bytes_list = tf.train.BytesList(value=[img_raw])),    #axample={'\xe4\xb8\xad\x96', [0, 0, 0, 1, 0, 0, 0, 0, 0, 0]}
@@ -74,8 +74,8 @@ def generate_tfRecord():																										#生成训练集和测试集�
         print 'the directory was created sussfully'
     else:
         print 'directory already exists'
-    write_tfRecord(tfRecord_train, image_train_path, label_train_path)
-    write_tfRecord(tfRecord_test, image_test_path, label_test_path)
+    write_tfRecord(tfRecord_train, image_train_path)
+#    write_tfRecord(tfRecord_test, image_test_path, label_test_path)
 
 def read_tfRecord(tfRecord_path):																						#读取并解析tfrecord文件
     ilename_queue = tf.train.string_input_producer([tfRecord_path])				#该函数会生成一个先入先出的队列，文件阅读器会使用它来读取数据
@@ -109,19 +109,8 @@ def get_tfrecord(num, isTrain =True):																				#随机读取一个batc
     print 'geting successfully!'
     return img_batch,label_batch
 
-def WritePicAndNumberInfo(path):
-    pic_folder = os.listdir(path)                   #s.listdir返回文件夹内的文件列表，[bird, dog, ....]
-    num_dict = [0,1,2,3,4,5,6,7,8,9]
-    dict_pic_num = dict(zip(pic_folder,num_dict)  ) #把2个列表合成一个字典
-    Pic_PredictedVaule_dict = open('./PicKey_PicVaule.txt','w')
-
-    for key in dict_pic_num:
-        Pic_PredictedVaule_dict.write(key + ' ' + str(dict_pic_num[key]) + '\n')
-    Pic_PredictedVaule_dict.close()
-
 
 def main():
-    WritePicAndNumberInfo(train_folder)    #写,读测试文件夹train时，返回的文件夹名字(key)和对应的字典中value的txt文
     ReadFile(train_folder)
     ReadFile(test_folder)
     generate_tfRecord()
