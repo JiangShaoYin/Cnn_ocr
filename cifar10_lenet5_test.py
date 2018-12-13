@@ -11,7 +11,6 @@ import time
 import cifar10_lenet5_forward
 import cifar10_lenet5_backward
 import cifar10_lenet5_generateds
-from tensorflow.examples.tutorials.mnist import input_data
 INTERVAL_TIME = 5
 TEST_NUM = 1000 #1
 BATCH_SIZE = 1000
@@ -24,8 +23,8 @@ def test():
     with tf.Graph().as_default() as g:                                      #复现之前定义的计算图，并执行以下操作
         x = tf.placeholder(tf.float32, [                                    #定义占位符x，以之代替输入图片
             BATCH_SIZE,
-            cifar10_lenet5_forward.IMAGE_SIZE,
-            cifar10_lenet5_forward.IMAGE_SIZE,
+            cifar10_lenet5_forward.IMAGE_HEIGHT,
+            cifar10_lenet5_forward.IMAGE_WIDTH,
             cifar10_lenet5_forward.NUM_CHANNELS])
         
         y_ = tf.placeholder(tf.float32,[None, cifar10_lenet5_forward.OUTPUT_NODE]) #定义占位符y_，用来接神经元计算结果
@@ -35,7 +34,7 @@ def test():
         ema_restore = ema.variables_to_restore()                                      # variable_to_restore()返回dict ({ema_variables : variables})，字典中保存变量的影子值和现值
         saver = tf.train.Saver(ema_restore) 			                                    # 创建可还原滑动平均值的对象saver，测试时使用w的影子值，有更好的适配性
         
-        correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))              # 比较预测值和标准输出得到correct_prediction，if tf.argmax(y, 1) equals to tf.argmax(y_, 1),correct_prediction will be set True
+        correct_prediction = tf.equal(y, y_)              # 比较预测值和标准输出得到correct_prediction，if tf.argmax(y, 1) equals to tf.argmax(y_, 1),correct_prediction will be set True
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))            # 将correct_prediction的值从boolean型转为tf.float32型，求均值，得出预测准确率 
 
         img_batch,label_batch = cifar10_lenet5_generateds.get_tfrecord(TEST_NUM, isTrain=False)  #2 一次批获取 TEST_NUM 张图片和标签
@@ -55,8 +54,8 @@ def test():
 
                     reshaped_xs = np.reshape(xs, (                              #导入部分，更改参数的形状
                         BATCH_SIZE,
-                        cifar10_lenet5_forward.IMAGE_SIZE,
-                        cifar10_lenet5_forward.IMAGE_SIZE,
+                        cifar10_lenet5_forward.IMAGE_HEIGHT,
+                        cifar10_lenet5_forward.IMAGE_WIDTH,
                         cifar10_lenet5_forward.NUM_CHANNELS))             
 
  

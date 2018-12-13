@@ -14,7 +14,7 @@ from tensorflow.examples.tutorials.mnist import input_data
 
 
 #BATCH_SIZE = 100          		# 一个训练batch中的训练数据个数
-BATCH_SIZE = 1          		# 一个训练batch中的训练数据个数
+BATCH_SIZE = 100          		# 一个训练batch中的训练数据个数
 LEARNING_RATE_BASE = 0.005		# 基础学习率
 LEARNING_RATE_DECAY = 0.99		# 学习率的衰减率
 REGULARIZER = 0.0001 			# 描述模型复杂度的正则化项在损失函数中的系数
@@ -30,8 +30,8 @@ train_num_examples = 50000 		#2训练样本数
 def backward():								#执行反向传播，训练参数w
     x = tf.placeholder(tf.float32, [                                    #定义占位符x，以之代替输入图片
         BATCH_SIZE,
-        cifar10_lenet5_forward.IMAGE_SIZE,
-        cifar10_lenet5_forward.IMAGE_SIZE,
+        cifar10_lenet5_forward.IMAGE_HEIGHT,
+        cifar10_lenet5_forward.IMAGE_WIDTH,
         cifar10_lenet5_forward.NUM_CHANNELS])
     y_ = tf.placeholder(tf.float32, [None, cifar10_lenet5_forward.OUTPUT_NODE])#定义占位符y_，用来接神经元计算结果
                                                                         #True表示训练阶段，在进行forward时，if语句成立，进行dropout
@@ -78,15 +78,15 @@ def backward():								#执行反向传播，训练参数w
 
             reshaped_xs = np.reshape(xs, (                              #导入部分，更改参数的形状
                 BATCH_SIZE,
-                cifar10_lenet5_forward.IMAGE_SIZE,
-                cifar10_lenet5_forward.IMAGE_SIZE,
+                cifar10_lenet5_forward.IMAGE_HEIGHT,
+                cifar10_lenet5_forward.IMAGE_WIDTH,
                 cifar10_lenet5_forward.NUM_CHANNELS))             
 
             _, loss_value, step = sess.run([train_op, loss,global_step],    # 计算损失函数结果，计算节点train_op, loss,global_step并返回结果至 _, loss_value, step ，
                                             feed_dict = {x : reshaped_xs, y_ : ys})  #'_' means an anonymous variable which will not in use any more
             if i % 1000 == 0:                                               # 每1000轮打印损失函数信息，并保存当前的模型
                 print("after %d training step(s), loss on training batch is %g." % (step, loss_value))
-                saver.save(sess, os.path.join(MODEL_SAVE_PATH, MODEL_NAME),global_step = global_step)   # 保存当前模型，globle_step参数可以使每个被保存模型的文件名末尾都加上训练的轮数
+                #saver.save(sess, os.path.join(MODEL_SAVE_PATH, MODEL_NAME),global_step = global_step)   # 保存当前模型，globle_step参数可以使每个被保存模型的文件名末尾都加上训练的轮数
       																																															 # 文件的名字是MODEL_SAVE_PATH + MODEL_NAME + global_step
         coord.request_stop()                                                #7关闭线程协调器
         coord.join(threads)                                                 #8

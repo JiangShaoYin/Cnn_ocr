@@ -7,15 +7,17 @@
 import tensorflow as tf
 import numpy as np
 
-IMAGE_SIZE = 32					#图像的像素尺寸
-NUM_CHANNELS = 3
+
+IMAGE_HEIGHT = 32					#图像的像素尺寸
+IMAGE_WIDTH = 256					#图像的像素尺寸
+NUM_CHANNELS = 1
 CONV1_SIZE = 5          #第1层卷积的核长
 CONV1_KERNEL_NUM = 32   #第1层卷积层的深度（核数）
 CONV2_SIZE =5						#第2层卷积的核长
 CONV2_KERNEL_NUM = 64   #第2层卷积层的深度（核数）
 FC_SIZE = 512           #全连接层的神经元个数
-OUTPUT_NODE = 10        #全连接第2层的神经元个数
-INPUT_NODE = 3072
+OUTPUT_NODE = 180       #全连接第2层的神经元个数
+INPUT_NODE = 32*256
 
 
 def get_weight(shape, regularizer):#第1层卷积的核长
