@@ -12,8 +12,8 @@ import cifar10_lenet5_forward
 import cifar10_lenet5_backward
 import cifar10_lenet5_generateds
 INTERVAL_TIME = 5
-TEST_NUM = 1000 #1
-BATCH_SIZE = 1000
+TEST_NUM = 10 #1
+BATCH_SIZE = 10
 #test!
 
 
@@ -27,17 +27,19 @@ def test():
             cifar10_lenet5_forward.IMAGE_WIDTH,
             cifar10_lenet5_forward.NUM_CHANNELS])
         
-        y_ = tf.placeholder(tf.float32,[None, cifar10_lenet5_forward.OUTPUT_NODE]) #定义占位符y_，用来接神经元计算结果
-        y = cifar10_lenet5_forward.forward(x,False,  None)                                #y是神经元的计算结果，下一步喂给y_
+        y_ = tf.placeholder(tf.float32,[None, 10]) #定义占位符y_，用来接数据集中的标签值
+        y = cifar10_lenet5_forward.forward(x, False,  None)                                #y是神经元的计算结果
+        y = tf.reshape(y, [-1, 10])
+        predict_ans = tf.argmax(y,1)                                               #batch*18行数据
 
         ema = tf.train.ExponentialMovingAverage(cifar10_lenet5_backward.MOVING_AVERAGE_DECAY)# 实现滑动平均模型，参数MOVING_AVERAGE_DECAY用于控制模型更新的速度，训练过程中会对每一个变量维护一个影子变量
         ema_restore = ema.variables_to_restore()                                      # variable_to_restore()返回dict ({ema_variables : variables})，字典中保存变量的影子值和现值
         saver = tf.train.Saver(ema_restore) 			                                    # 创建可还原滑动平均值的对象saver，测试时使用w的影子值，有更好的适配性
-        
-        correct_prediction = tf.equal(y, y_)              # 比较预测值和标准输出得到correct_prediction，if tf.argmax(y, 1) equals to tf.argmax(y_, 1),correct_prediction will be set True
+         
+        correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))              # 比较预测值和标准输出得到correct_prediction，if tf.argmax(y, 1) equals to tf.argmax(y_, 1),correct_prediction will be set True
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))            # 将correct_prediction的值从boolean型转为tf.float32型，求均值，得出预测准确率 
 
-        img_batch,label_batch = cifar10_lenet5_generateds.get_tfrecord(TEST_NUM, isTrain=False)  #2 一次批获取 TEST_NUM 张图片和标签
+        img_batch,label_batch = cifar10_lenet5_generateds.get_tfrecord(TEST_NUM, isTrain=True)  #2 一次批获取 TEST_NUM 张图片和标签
         
 
         while True:
@@ -58,10 +60,13 @@ def test():
                         cifar10_lenet5_forward.IMAGE_WIDTH,
                         cifar10_lenet5_forward.NUM_CHANNELS))             
 
- 
-                    accuracy_score = sess.run(accuracy, # 计算准确率
-                        feed_dict={x:reshaped_xs, y_:ys})
-
+                    reshaped_ys = np.reshape(ys, (-1,10))
+#                    print y_,reshaped_ys
+#                    print x, reshaped_xs
+                    accuracy_score,predict_value = sess.run([accuracy,predict_ans], # 计算准确率
+                                                     feed_dict={x:reshaped_xs,
+                                                                y_:reshaped_ys})
+                    print "predict_value:",predict_value
                     print ("after %s training step(s), test accuracy = %g"
                             % (global_step, accuracy_score))
 

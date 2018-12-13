@@ -15,8 +15,8 @@ image,text,vec = obj.gen_image()
 #图像大小
 IMAGE_HEIGHT = 32
 IMAGE_WIDTH = 256
-MAX_CAPTCHA = obj.max_size
-CHAR_SET_LEN = obj.len
+MAX_CAPTCHA = obj.max_size	#18
+CHAR_SET_LEN = obj.len 		#10
 
 # 生成一个训练batch
 def get_next_batch(batch_size=128):
@@ -33,7 +33,7 @@ def get_next_batch(batch_size=128):
  
 ####################################################################
 X = tf.placeholder(tf.float32, [None, IMAGE_HEIGHT*IMAGE_WIDTH])
-Y = tf.placeholder(tf.float32, [None, MAX_CAPTCHA*CHAR_SET_LEN])
+Y = tf.placeholder(tf.float32, [None, MAX_CAPTCHA*CHAR_SET_LEN])	#由标签传入的[180]数组
 keep_prob = tf.placeholder(tf.float32) # dropout
 # 是否在训练阶段
 train_phase = tf.placeholder(tf.bool)
@@ -108,17 +108,19 @@ def crack_captcha_cnn(w_alpha=0.01, b_alpha=0.1):
  
 # 训练
 def train_crack_captcha_cnn():
-	output = crack_captcha_cnn()
+	output = crack_captcha_cnn() #
+        print "output:",output
 	# loss
 	#loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=output, labels=Y))
-	loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=output, labels=Y))
+	loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=output, labels=Y))  #Y=[-1, 180]
+        
       # 最后一层用来分类的softmax和sigmoid有什么不同？
 	# optimizer 为了加快训练 learning_rate应该开始大，然后慢慢衰
 	optimizer = tf.train.AdamOptimizer(learning_rate=0.002).minimize(loss)
- 
+      # 定义正确率
 	predict = tf.reshape(output, [-1, MAX_CAPTCHA, CHAR_SET_LEN])
 	max_idx_p = tf.argmax(predict, 2)
-	max_idx_l = tf.argmax(tf.reshape(Y, [-1, MAX_CAPTCHA, CHAR_SET_LEN]), 2)
+	max_idx_l = tf.argmax(tf.reshape(Y, [-1, MAX_CAPTCHA, CHAR_SET_LEN]), 2)	#MAX_CAPTCHA=18, CHAR_SET_LEN=10
 	correct_pred = tf.equal(max_idx_p, max_idx_l)
 	accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
  
@@ -133,9 +135,11 @@ def train_crack_captcha_cnn():
 			print(step, loss_)
 			
 			# 每100 step计算一次准确率
-			if step % 100 == 0 and step != 0:
+			if step % 1 == 0 and step != 0:
 				batch_x_test, batch_y_test = get_next_batch(100)
-				acc = sess.run(accuracy, feed_dict={X: batch_x_test, Y: batch_y_test, keep_prob: 1., train_phase:False})
+				acc, predict_ans= sess.run([accuracy, predict], feed_dict={X: batch_x_test, Y: batch_y_test, keep_prob: 1., train_phase:False})
+                                print predict_ans,predict_ans.shape  #预测的结果矩阵batch*18*10
+
 				print  "第%s步，训练准确率为：%s" % (step, acc)
 				# 如果准确率大80%,保存模型,完成训练
 				if acc > 0.8:

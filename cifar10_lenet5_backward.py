@@ -33,14 +33,18 @@ def backward():								#执行反向传播，训练参数w
         cifar10_lenet5_forward.IMAGE_HEIGHT,
         cifar10_lenet5_forward.IMAGE_WIDTH,
         cifar10_lenet5_forward.NUM_CHANNELS])
-    y_ = tf.placeholder(tf.float32, [None, cifar10_lenet5_forward.OUTPUT_NODE])#定义占位符y_，用来接神经元计算结果
+    y_ = tf.placeholder(tf.float32, [None, 10])#定义占位符y_，作为传入标签
                                                                         #True表示训练阶段，在进行forward时，if语句成立，进行dropout
-    y = cifar10_lenet5_forward.forward(x,True, REGULARIZER)		#y是神经元的计算结果，下一步喂给y_
+    y = cifar10_lenet5_forward.forward(x,True, REGULARIZER)		#y是神经元的计算结果
+    y = tf.reshape(y, [-1, 10])
+#    print "y:",y
     global_step = tf.Variable(0, trainable = False)                     #定义变量global_step，并把它的属性设置为不可训练  
+#    y = tf.reshape(y,[-1,18,10])                                        #将神经网络的计算结果y，转换为batch*18行*10列的tensor
+#    for i in range(18): 
 
     ce = tf.nn.sparse_softmax_cross_entropy_with_logits(logits = y,     #用交叉熵ce（cross entropy），使用tf.nn.sparse_softmax_cross_entropy_with_logits函数计算交叉熵，
-                                            labels = tf.argmax(y_, 1))  #其第一个参数是神经网络不包括softmax层的前向传播结果，第二个参数是训练数据的正确答案 
-                                                                            # tf.argmax(vector, 1)：返回的是vector中的最大值的索引号
+                                            labels =tf.argmax(y_,1))  #其第一个参数是神经网络不包括softmax层的前向传播结果，第二个参数是训练数据的正确答案 
+                                                                        # tf.argmax(vector, 1)：返回的是vector中的最大值的索引号
     cem = tf.reduce_mean(ce)                                            #计算在当前batch中所有样例的交叉熵平均值 
     loss = cem + tf.add_n(tf.get_collection('losses')) 			# 总损失等于交叉熵损失 + 正则化损失的和,losses保存有正则化的计算结果（forward中getweight（）对参数进行了正则化计算）
     learning_rate = tf.train.exponential_decay(				# 设置指数衰减的学习率
@@ -81,12 +85,13 @@ def backward():								#执行反向传播，训练参数w
                 cifar10_lenet5_forward.IMAGE_HEIGHT,
                 cifar10_lenet5_forward.IMAGE_WIDTH,
                 cifar10_lenet5_forward.NUM_CHANNELS))             
+            reshaped_ys = np.reshape(ys, (-1,10))
 
             _, loss_value, step = sess.run([train_op, loss,global_step],    # 计算损失函数结果，计算节点train_op, loss,global_step并返回结果至 _, loss_value, step ，
-                                            feed_dict = {x : reshaped_xs, y_ : ys})  #'_' means an anonymous variable which will not in use any more
+                                            feed_dict = {x : reshaped_xs, y_ : reshaped_ys})  #'_' means an anonymous variable which will not in use any more
             if i % 1000 == 0:                                               # 每1000轮打印损失函数信息，并保存当前的模型
                 print("after %d training step(s), loss on training batch is %g." % (step, loss_value))
-                #saver.save(sess, os.path.join(MODEL_SAVE_PATH, MODEL_NAME),global_step = global_step)   # 保存当前模型，globle_step参数可以使每个被保存模型的文件名末尾都加上训练的轮数
+                saver.save(sess, os.path.join(MODEL_SAVE_PATH, MODEL_NAME),global_step = global_step)   # 保存当前模型，globle_step参数可以使每个被保存模型的文件名末尾都加上训练的轮数
       																																															 # 文件的名字是MODEL_SAVE_PATH + MODEL_NAME + global_step
         coord.request_stop()                                                #7关闭线程协调器
         coord.join(threads)                                                 #8
