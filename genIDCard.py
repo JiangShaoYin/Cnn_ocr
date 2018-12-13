@@ -135,7 +135,7 @@ if __name__ == '__main__':
         ID = gen_id_card()
         image,text,vec = ID.gen_image()
         
-        name = "./pic/" + str(i) + " " + text + ".jpg" 
+        name = "./pic/train/" + str(i) + " " + text + " .jpg" 
         cv2.imwrite(name, image)
 #    cv2.imshow('image', image)
 #    cv2.waitKey(0)                     #一直显示图像，直到键入0为之

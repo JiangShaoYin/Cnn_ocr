@@ -41,6 +41,7 @@ def ReadFile(path):                                 #往文件夹里写标签tex
 '''
 def ID2Vecs(ID_String):
 
+
 def write_tfRecord(tfRecordName, image_path):	# 生成tfrecord文件，对图片进行标注，将图和标签封装进example并做序列化处理，写入tfrecord文件
     writer = tf.python_io.TFRecordWriter(tfRecordName)		#新建一writer
     num_pic = 0
