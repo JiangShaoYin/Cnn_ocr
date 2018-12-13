@@ -7,8 +7,8 @@
  
 import tensorflow as tf
 import numpy as np
-import cifar10_lenet5_forward
-import cifar10_lenet5_generateds #1
+import forward
+import generateds #1
 import os
 from tensorflow.examples.tutorials.mnist import input_data
 
@@ -30,12 +30,12 @@ train_num_examples = 50000 		#2训练样本数
 def backward():								#执行反向传播，训练参数w
     x = tf.placeholder(tf.float32, [                                    #定义占位符x，以之代替输入图片
         BATCH_SIZE,
-        cifar10_lenet5_forward.IMAGE_HEIGHT,
-        cifar10_lenet5_forward.IMAGE_WIDTH,
-        cifar10_lenet5_forward.NUM_CHANNELS])
+        forward.IMAGE_HEIGHT,
+        forward.IMAGE_WIDTH,
+        forward.NUM_CHANNELS])
     y_ = tf.placeholder(tf.float32, [None, 10])#定义占位符y_，作为传入标签
                                                                         #True表示训练阶段，在进行forward时，if语句成立，进行dropout
-    y = cifar10_lenet5_forward.forward(x,True, REGULARIZER)		#y是神经元的计算结果
+    y = forward.forward(x,True, REGULARIZER)		#y是神经元的计算结果
     y = tf.reshape(y, [-1, 10])
 #    print "y:",y
     global_step = tf.Variable(0, trainable = False)                     #定义变量global_step，并把它的属性设置为不可训练  
@@ -63,7 +63,7 @@ def backward():								#执行反向传播，训练参数w
 
     saver = tf.train.Saver() 																# 声明tf.train.Saver类用于保存模型
         
-    img_batch, lable_batch = cifar10_lenet5_generateds.get_tfrecord(BATCH_SIZE, isTrain=True)   #3一次批获取 batch_size 张图片和标签
+    img_batch, lable_batch = generateds.get_tfrecord(BATCH_SIZE, isTrain=True)   #3一次批获取 batch_size 张图片和标签
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())                     # 初始化所有变量
@@ -82,9 +82,9 @@ def backward():								#执行反向传播，训练参数w
 
             reshaped_xs = np.reshape(xs, (                              #导入部分，更改参数的形状
                 BATCH_SIZE,
-                cifar10_lenet5_forward.IMAGE_HEIGHT,
-                cifar10_lenet5_forward.IMAGE_WIDTH,
-                cifar10_lenet5_forward.NUM_CHANNELS))             
+                forward.IMAGE_HEIGHT,
+                forward.IMAGE_WIDTH,
+                forward.NUM_CHANNELS))             
             reshaped_ys = np.reshape(ys, (-1,10))
 
             _, loss_value, step = sess.run([train_op, loss,global_step],    # 计算损失函数结果，计算节点train_op, loss,global_step并返回结果至 _, loss_value, step ，

@@ -7,9 +7,9 @@
  
 import tensorflow as tf
 import numpy as np
-import cifar10_lenet5_forward
-import cifar10_lenet5_backward
-import cifar10_lenet5_generateds
+import forward
+import backward
+import generateds
 import os
 from PIL import Image
 testNum = 10
@@ -37,21 +37,21 @@ def pre_pic(picName):
 def restore_model(testPicArr):                     # 定义重建模型并进行预测
     with tf.Graph().as_default() as g:
         x = tf.placeholder(tf.float32, [1,32,256,1])	#定义占位符x，以之代替输入图片
-        y = cifar10_lenet5_forward.forward(x, False,  None)                                #y是神经元的计算结果
+        y = forward.forward(x, False,  None)                                #y是神经元的计算结果
         y = tf.reshape(y, [-1, 10])
-        predict_Value = tf.argmax(y,1)                                               #batch*18行数据
+        predict_Value = tf.argmax(y,1)                #返回1个18列的1维数组，                               #batch*18行数据
 
-        ema = tf.train.ExponentialMovingAverage(cifar10_lenet5_backward.MOVING_AVERAGE_DECAY) # 实现滑动平均模型，参数MOVING_AVERAGE_DECAY用于控制模型更新的
+        ema = tf.train.ExponentialMovingAverage(backward.MOVING_AVERAGE_DECAY) # 实现滑动平均模型，参数MOVING_AVERAGE_DECAY用于控制模型更新的
                                                                                        # 速度，训练过程中会对每一个变量维护一个影子变量
         ema_restore = ema.variables_to_restore()          # variable_to_restore()返回dict ({ema_variables : variables})，字典中保存变量的影子值和现值
         saver = tf.train.Saver(ema_restore)               # 创建可还原滑动平均值的对象saver，测试时使用w的影子值，有更好的适配性
 
         with tf.Session() as sess:
-            ckpt = tf.train.get_checkpoint_state(cifar10_lenet5_backward.MODEL_SAVE_PATH) # 从指定路径中，加载训练好的模型
+            ckpt = tf.train.get_checkpoint_state(backward.MODEL_SAVE_PATH) # 从指定路径中，加载训练好的模型
             if ckpt and ckpt.model_checkpoint_path:                                # 若已有ckpt模型则执行以下恢复操作
                 saver.restore(sess, ckpt.model_checkpoint_path)                    # 恢复会话到当前的神经网络
                 predictValue = sess.run(predict_Value, feed_dict={x:testPicArr})    #通过feed_dict将测试图片输入，输出预测结果
-                print "predictValue",predictValue
+                print "predictValue",predictValue.shape
                 return predictValue
             else:                                                                  # 没有成功加载ckpt模型，
                 print "no checkpoint file found"
