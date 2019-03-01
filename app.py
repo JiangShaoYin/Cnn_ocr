@@ -23,7 +23,7 @@ def pre_pic(picName):
     threshold = 50                                #>阈值，设置为255,<阈值，设置为0
     for i in range(32):                           #width 32
         for j in range(256):                       #height 256
-            im_array[i][j] = 255 - im_array[i][j] #将测试图取反（保持和backward训练图片格式的一致）
+       #     im_array[i][j] = 255 - im_array[i][j] #将测试图取反（保持和backward训练图片格式的一致）
             if (im_array[i][j] < threshold):
                 im_array[i][j] = 0
             else:      

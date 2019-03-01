@@ -16,9 +16,6 @@ TEST_NUM = 10 #1
 BATCH_SIZE = 10
 #test!
 
-
-
-
 def test():
     with tf.Graph().as_default() as g:                                      #复现之前定义的计算图，并执行以下操作
         x = tf.placeholder(tf.float32, [                                    #定义占位符x，以之代替输入图片
@@ -27,7 +24,7 @@ def test():
             forward.IMAGE_WIDTH,
             forward.NUM_CHANNELS])
         
-        y_ = tf.placeholder(tf.float32,[None, 10]) #定义占位符y_，用来接数据集中的标签值
+        y_ = tf.placeholder(tf.float32,[None, 10])                          #定义占位符y_，用来接数据集中的标签值
         y = forward.forward(x, False,  None)                                #y是神经元的计算结果
         y = tf.reshape(y, [-1, 10])
         predict_ans = tf.argmax(y,1)                                               #batch*18行数据
@@ -66,7 +63,7 @@ def test():
                     accuracy_score,predict_value = sess.run([accuracy,predict_ans], # 计算准确率
                                                      feed_dict={x:reshaped_xs,
                                                                 y_:reshaped_ys})
-                    print "predict_value:",predict_value
+#                    print "predict_value:",predict_value
                     print ("after %s training step(s), test accuracy = %g"
                             % (global_step, accuracy_score))
 
